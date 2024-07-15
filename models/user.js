@@ -15,7 +15,6 @@ const userSchema = new Schema(
     },
     salt: {
       type: String,
-      required: true,
     },
     password: {
       type: String,
@@ -55,7 +54,28 @@ userSchema.pre("save", function (next) {
   this.salt = salt;
   this.password = hashedPassword;
 
+  next();
+
 });
+
+//virtual function: can make multiple function on each schema
+
+userSchema.static("matchPassword", async function (email, password){
+    const user = await this.findOne({ email });
+    // console.log(user);
+    //In case user not in DB
+    if(!user) throw new Error("User not found");
+
+    //Match given password with hashedPassword in DB
+    const salt = user.salt;
+    const hashedPassword = user.password;
+
+    const userProvidePasswordToHash = createHmac("sha256", salt).update(password).digest('hex');
+
+    if(hashedPassword !== userProvidePasswordToHash) throw new Error("Incorrect password");
+
+    return user;
+})
 
 
 const User = model("user", userSchema);
