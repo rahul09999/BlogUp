@@ -1,5 +1,6 @@
 const { Schema, Model, model } = require("mongoose");
 const { createHmac, randomBytes } = require("crypto");
+const { createTokenForUser } = require("../service/authentication");
 
 const userSchema = new Schema(
   {
@@ -60,7 +61,7 @@ userSchema.pre("save", function (next) {
 
 //virtual function: can make multiple function on each schema
 
-userSchema.static("matchPassword", async function (email, password){
+userSchema.static("matchPasswordAndGenerateToken", async function (email, password){
     const user = await this.findOne({ email });
     // console.log(user);
     //In case user not in DB
@@ -74,7 +75,10 @@ userSchema.static("matchPassword", async function (email, password){
 
     if(hashedPassword !== userProvidePasswordToHash) throw new Error("Incorrect password");
 
-    return user;
+    // return user;
+    //generate token and return that instead of user
+    const token = createTokenForUser(user);
+    return token;
 })
 
 
