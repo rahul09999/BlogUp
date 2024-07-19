@@ -7,7 +7,6 @@ const userSchema = new Schema(
     fullName: {
       type: String,
       required: true,
-      unique: true,
     },
     email: {
       type: String,
@@ -23,7 +22,7 @@ const userSchema = new Schema(
     },
     profileImage: {
       type: String,
-      path: "./images/avatar.avif",
+      default: "./images/avatar.avif",
     },
     role: {
       type: String,
@@ -63,7 +62,7 @@ userSchema.pre("save", function (next) {
 
 userSchema.static("matchPasswordAndGenerateToken", async function (email, password){
     const user = await this.findOne({ email });
-    // console.log(user);
+    console.log("user from matchPass", user);
     //In case user not in DB
     if(!user) throw new Error("User not found");
 
