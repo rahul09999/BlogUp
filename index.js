@@ -6,7 +6,10 @@ const mongo_connect = process.env.MONGO_CONNECT;
 
 const mongooseConnect = require("./connect");
 const userRoute = require("./routes/user");
+const blogRoute = require("./routes/blog")
+const Blog = require("./models/blog");
 const { checkForAuthenticationCookie } = require("./middleware/authentication");
+
 const app = express();
 const PORT = 8000;
 
@@ -24,18 +27,23 @@ app.use(express.urlencoded({extended:false}));
 app.use(cookieParser());
 app.use(checkForAuthenticationCookie("token"));// get token payload in req.user after validation
 
+// Serve static files (like images, CSS, JavaScript) from the "public" directory
+// Express treats requests to these files as requests for static assets, not as route paths
+app.use(express.static(path.resolve("./public")))
+
 
 
 app.use("/user", userRoute);
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
     // console.log(req.user);
+
+    const allBlogs = await Blog.find({})
     return res.render("home", {
         user: req.user, //pass payload which we got from checkForAuthenticationCookie
+        blogs: allBlogs,
     })
 })
-// app.get("/", (req, res) => {
-//   res.render("home");
-// });
+app.use("/blog", blogRoute);
 
 app.listen(PORT, () => console.log(`Server is running or port: ${PORT}`));
 
